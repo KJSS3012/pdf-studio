@@ -1,5 +1,5 @@
 <script setup>
-import { ref  } from 'vue'
+import { ref, onMounted } from 'vue'
 import * as PDFJS from 'pdfjs-dist'
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url'
 import { usePdfStore } from '@/stores/pdf'
@@ -8,13 +8,17 @@ PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker
 
 const canvasRef = ref(null)
 let pdfDoc
-const currentPage = ref(1)
-const totalPages = ref(0)
 const pdfStore = usePdfStore()
 
+onMounted(() => {
+  window.electronAPI.updatePageHandle(async () => {
+    await loadPdf()
+  })
+})
+
 const renderPage = async () => {
-  const page = await pdfDoc.getPage(currentPage.value)
-  const viewport = page.getViewport({ scale: 1.0 })
+  const page = await pdfDoc.getPage(pdfStore.currentPage)
+  const viewport = page.getViewport({ scale: pdfStore.scale })
 
   const canvas = canvasRef.value
   const context = canvas.getContext('2d')
@@ -32,7 +36,7 @@ const loadPdf = async () => {
   try {
     const loadingTask = PDFJS.getDocument(pdfStore.path)
     pdfDoc = await loadingTask.promise
-    totalPages.value = pdfDoc.numPages
+    pdfStore.setTotalPages(pdfDoc.numPages)
     await renderPage()
   } catch (error) {
     console.error('Erro ao carregar PDF:', error)
@@ -44,6 +48,4 @@ const loadPdf = async () => {
   <canvas ref="canvasRef" id="pdf-canvas" class="pdf-canvas"></canvas>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
