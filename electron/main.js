@@ -1,10 +1,11 @@
 import { app, BrowserWindow } from 'electron'
-import { openFileHandler } from './app/config/utils/actions.js'
+import { openFileDialog, sendRenderPage } from './app/config/utils/actions.js'
 import { windowTemplate } from './app/templates/windowTemplate.js'
 
 app.whenReady().then(() => {
   windowTemplate()
-  openFileHandler()
+  openFileDialog()
+  sendRenderPage()
 })
 
 app.on('window-all-closed', () => {

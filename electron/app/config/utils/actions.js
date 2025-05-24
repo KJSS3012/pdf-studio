@@ -1,24 +1,22 @@
-import { BrowserWindow, dialog, ipcMain } from 'electron'
+import { dialog, ipcMain, BrowserWindow } from 'electron'
 
-const openFile = async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [{ name: 'PDFs', extensions: ['pdf'] }],
-  })
-  if (!canceled && filePaths.length) {
-    const win = BrowserWindow.getFocusedWindow()
-    win.webContents.send('open-file', filePaths[0])
-  }
-}
-
-const openFileHandler = () => {
-  ipcMain.handle('open-file', async () => {
+const openFileDialog = () => {
+  ipcMain.handle('dialog:openFile', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       properties: ['openFile'],
-      filters: [{ name: 'PDFs', extensions: ['pdf'] }],
     })
-    return canceled ? null : filePaths[0]
+    if (canceled) return null
+    return filePaths[0]
   })
 }
 
-export { openFile, openFileHandler }
+const sendRenderPage = () => {
+  ipcMain.on('render-page', (event) => {
+    const win = BrowserWindow.getFocusedWindow()
+    if (win) {
+      win.webContents.send('render-page')
+    }
+  })
+}
+
+export { openFileDialog, sendRenderPage }
